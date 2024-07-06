@@ -1,12 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-import App from './App';
+import { Provider } from 'react-redux';
 
 import './index.css';
 
+import { store } from './app/store';
+import IBCInfoFetcher from './components/dapp/IBCInfoFetcher';
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <IBCInfoFetcher />
+    </Provider>
   </React.StrictMode>,
 );

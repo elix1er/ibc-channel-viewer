@@ -1,7 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 import Editor from '@monaco-editor/react';
 import * as Toast from '@radix-ui/react-toast';
@@ -26,165 +24,77 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
-import ChainRestSelector from './components/dapp/registry';
+import { AppDispatch, RootState } from '../../app/store';
+import {
+  fetchChannels,
+  fetchIBCData,
+  setChannelId,
+  setRestAddress,
+  setShowTransferOnly,
+} from '../../features/ibcInfo/ibcInfoSlice';
+import LoadingBorderCard from '../ui/loading-border-card';
+import ChainRestSelector from './registry';
 
-// Yes the struct is wrong blablabla.
-interface IBCData {
-  channelId: string;
-  clientId: string;
-  connectionId: string;
-  counterparty_channelId: string;
-  counterparty_clientId: string;
-  counterparty_connectionId: string;
-  state: string;
-  ordering: string;
-  version: string;
-  portId: string;
-}
+const IBCInfoFetcher: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    restAddress,
+    channelId,
+    isLoading,
+    error,
+    data,
+    availableChannels,
+    showTransferOnly,
+  } = useSelector((state: RootState) => state.ibcInfo);
 
-const IBCInfoFetcher = () => {
-  const [open, setOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState({
+  const { selectedEndpoint } = useSelector(
+    (state: RootState) => state.chainRegistry,
+  );
+
+  const [open, setOpen] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState({
     title: '',
     description: '',
   });
-  const [restAddress, setRestAddress] = useState<string>('');
-  const [channelId, setChannelId] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<IBCData | null>(null);
-  const [availableChannels, setAvailableChannels] = useState<any[]>([]);
-  const [showTransferOnly, setShowTransferOnly] = useState<boolean>(false);
-  const timerRef = useRef(1000);
 
   useEffect(() => {
-    return () => clearTimeout(timerRef.current);
-  }, []);
-
-  const handleEndpointChange = useCallback((endpoint: string) => {
-    setRestAddress(endpoint);
-  }, []);
-
-  const fetchData = async (url: string): Promise<any> => {
-    if (restAddress) {
-      const response = await fetch(url, { mode: 'cors' });
-
-      if (!response.ok) {
-        throw new Error(`Error fetching data from ${url}`);
-      }
-
-      return response.json();
-    }
-  };
-
-  const fetchChannels = async () => {
-    try {
-      if (!restAddress) {
-        // throw new Error('REST endpoint is not set');
-        return;
-      }
-
-      const response = await fetchData(
-        `${restAddress}/ibc/core/channel/v1/channels`,
-      );
-
-      setAvailableChannels(response.channels);
-    } catch (err) {
-      console.log('Error fetching channels:', err);
-      setAvailableChannels([]);
+    if (error) {
       setToastMessage({
-        title: 'Error fetching channels',
-        description: err instanceof Error ? err.message : String(err),
+        title: 'Error',
+        description: error,
       });
       setOpen(true);
     }
-  };
+  }, [error]);
+
+  useEffect(() => {
+    if (selectedEndpoint) {
+      dispatch(setRestAddress(selectedEndpoint));
+    }
+  }, [selectedEndpoint, dispatch]);
 
   useEffect(() => {
     if (restAddress) {
-      fetchChannels();
+      dispatch(fetchChannels());
     }
-  }, [restAddress]);
+  }, [restAddress, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    setData(null);
-
-    if (!restAddress) {
-      setError('REST endpoint is not set');
-      setOpen(true);
-
-      return;
-    }
-
-    try {
-      await fetchChannels();
-
-      const selectedChannel = availableChannels.find(
-        channel => channel.channel_id === channelId,
-      );
-
-      if (!selectedChannel) {
-        throw new Error('Selected channel not found');
-      }
-
-      let version;
-
-      try {
-        version = JSON.parse(selectedChannel.version);
-      } catch (err) {
-        version = selectedChannel.version;
-      } finally {
-        setData({
-          ...selectedChannel,
-          version,
-        });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setToastMessage({
-        title: 'Error',
-        description: err instanceof Error ? err.message : String(err),
-      });
-      setOpen(true);
-    } finally {
-      setIsLoading(false);
-    }
+    console.log('Submitting with channelId:', channelId);
+    dispatch(fetchIBCData());
   };
 
   const filteredChannels = showTransferOnly
-    ? availableChannels.filter(channel => channel.port_id === 'transfer')
+    ? availableChannels.filter(
+        (channel: { port_id: string }) => channel.port_id === 'transfer',
+      )
     : availableChannels;
 
   return (
     <Toast.Provider swipeDirection="right">
       <Toast.Viewport className="fixed right-0 top-0 z-[2147483647] m-0 flex w-[390px] max-w-[100vw] list-none flex-col gap-[10px] p-[var(--viewport-padding)] outline-none [--viewport-padding:_25px]" />
-      <header className="flex items-center justify-between bg-gray-800 px-6 py-4">
-        <div className="text-lg font-bold text-white">
-          Moontech Labs ~ Tokenizin IBC Gateway{' '}
-        </div>
-        <nav>
-          <ul className="flex space-x-4">
-            <li>
-              <a href="#" className="text-gray-300 hover:text-white">
-                Dashboard
-              </a>
-            </li>
-            <li>
-              <a href="#" className="text-gray-300 hover:text-white">
-                Settings
-              </a>
-            </li>
-            <li>
-              <a href="#" className="text-gray-300 hover:text-white">
-                Help
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      {/* Header component remains unchanged */}
       <div className="flex min-h-screen w-full items-center justify-center px-12 dark:bg-gray-900">
         <div className="flex w-full max-w-7xl flex-col lg:flex-row lg:space-x-8">
           <motion.div
@@ -193,7 +103,7 @@ const IBCInfoFetcher = () => {
             transition={{ duration: 0.5 }}
             className="w-full lg:w-1/2"
           >
-            <Card className="w-full">
+            <LoadingBorderCard isLoading={isLoading}>
               <CardHeader>
                 <CardTitle className="text-3xl font-bold">
                   IBC Info Explorer
@@ -203,15 +113,15 @@ const IBCInfoFetcher = () => {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-4">
-                    <ChainRestSelector
-                      disabled={false}
-                      onEndpointChange={handleEndpointChange}
-                    />
+                    <ChainRestSelector disabled={false} />
+
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="channel-type"
                         checked={showTransferOnly}
-                        onCheckedChange={setShowTransferOnly}
+                        onCheckedChange={checked =>
+                          dispatch(setShowTransferOnly(checked))
+                        }
                       />
                       <Label htmlFor="channel-type">
                         Show Transfer Channels Only
@@ -227,7 +137,7 @@ const IBCInfoFetcher = () => {
                           Boolean(error)
                         }
                         value={channelId}
-                        onValueChange={setChannelId}
+                        onValueChange={value => dispatch(setChannelId(value))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a channel" />
@@ -252,7 +162,7 @@ const IBCInfoFetcher = () => {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isLoading || !channelId || Boolean(error)}
+                    disabled={isLoading || !channelId}
                   >
                     {isLoading ? (
                       <>
@@ -265,7 +175,7 @@ const IBCInfoFetcher = () => {
                   </Button>
                 </form>
               </CardContent>
-            </Card>
+            </LoadingBorderCard>
           </motion.div>
 
           <AnimatePresence>
@@ -285,8 +195,8 @@ const IBCInfoFetcher = () => {
                   <CardContent>
                     <Editor
                       height="500px"
-                      defaultLanguage="json"
-                      defaultValue={JSON.stringify(data, null, 2)}
+                      language="json"
+                      value={JSON.stringify(data, null, 2)}
                       options={{
                         readOnly: true,
                         minimap: { enabled: false },

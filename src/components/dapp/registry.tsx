@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { useEffect, useState } from 'react';
-
-import { ChainRegistryClient } from '@chain-registry/client';
+// import { ChainRegistryClient } from '@chain-registry/client';
 
 import { Label } from '@/components/ui/label';
 import {
@@ -13,54 +12,28 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const ChainRestSelector = ({
-  onEndpointChange,
-  disabled,
-}: {
-  onEndpointChange: (endpoint: string) => void;
-  disabled: boolean;
-}) => {
-  const [client, setClient] = useState<ChainRegistryClient | null>(null);
-  const [chains, setChains] = useState<any[]>([]);
-  const [selectedChain, setSelectedChain] = useState<string>('');
-  const [restEndpoints, setRestEndpoints] = useState<string[]>([]);
-  const [selectedEndpoint, setSelectedEndpoint] = useState<string>('');
-  const newClient = new ChainRegistryClient({
-    // chainNames: ['migaloo'],
-    chainNames: ['migaloo', 'osmosis', 'juno'], // Add more chains as needed
-  });
+import { AppDispatch, RootState } from '../../app/store';
+import {
+  initializeChainRegistry,
+  setSelectedChain,
+  setSelectedEndpoint,
+} from '../../features/chainRegistry/chainRegistrySlice';
+
+const ChainRestSelector = ({ disabled }: { disabled: boolean }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { chains, selectedChain, restEndpoints, selectedEndpoint } =
+    useSelector((state: RootState) => state.chainRegistry);
 
   useEffect(() => {
-    const initializeClient = async () => {
-      await newClient.fetchUrls();
-      setClient(newClient);
-      setChains(newClient.chains);
-    };
-
-    initializeClient();
-  }, []);
-
-  useEffect(() => {
-    if (selectedChain && client) {
-      const chainData = client.getChain(selectedChain);
-      const endpoints = chainData.apis?.rest?.map(api => api.address) || [];
-
-      // Filter out duplicate endpoints
-      const uniqueEndpoints = [...new Set(endpoints)];
-
-      setRestEndpoints(uniqueEndpoints);
-      setSelectedEndpoint(uniqueEndpoints[0] || '');
-      onEndpointChange(uniqueEndpoints[0] || '');
-    }
-  }, [selectedChain, client, onEndpointChange]);
+    dispatch(initializeChainRegistry());
+  }, [dispatch]);
 
   const handleChainChange = (value: string) => {
-    setSelectedChain(value);
+    dispatch(setSelectedChain(value));
   };
 
   const handleEndpointChange = (value: string) => {
-    setSelectedEndpoint(value);
-    onEndpointChange(value);
+    dispatch(setSelectedEndpoint(value));
   };
 
   return (
@@ -102,13 +75,6 @@ const ChainRestSelector = ({
           </Select>
         </div>
       )}
-
-      {/* {selectedEndpoint && (
-        <div className="pt-4">
-          <p className="text-sm font-medium">Selected Endpoint:</p>
-          <p className="break-all text-sm">{selectedEndpoint}</p>
-        </div>
-      )} */}
     </div>
   );
 };

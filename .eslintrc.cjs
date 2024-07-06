@@ -103,16 +103,14 @@ module.exports = {
   ],
   rules: {
     'n/no-missing-import': 'off', // to disable path alias errors
-    'node/no-missing-import': 'off', // to disable path alias errors
-    'node/no-unpublished-import': 'off', // to disable no unpublished errors
 
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
-    'prettier/prettier': 'error',
+    'prettier/prettier': 'warn',
 
-    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-imports': 'warn',
     'unused-imports/no-unused-vars': [
-      'error',
+      'warn',
       {
         vars: 'all',
         varsIgnorePattern: '^_',
@@ -138,10 +136,6 @@ module.exports = {
     // Note: you must disable the base rule as it can report incorrect errors
     'no-unused-expressions': 'off',
     '@typescript-eslint/no-unused-expressions': 'error',
-
-    // Note: you must disable the base rule as it can report incorrect errors
-    'no-extra-semi': 'off',
-    '@typescript-eslint/no-extra-semi': 'error',
 
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'off',

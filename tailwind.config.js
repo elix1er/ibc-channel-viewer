@@ -59,6 +59,11 @@ module.exports = {
           foreground: 'hsl(var(--card-foreground))',
         },
       },
+      backgroundImage: {
+        'conic-gradient':
+          'conic-gradient(from 0deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #8b00ff, #ff0000)',
+      },
+
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
@@ -87,13 +92,29 @@ module.exports = {
           from: { transform: 'translateX(var(--radix-toast-swipe-end-x))' },
           to: { transform: 'translateX(calc(100% + var(--viewport-padding)))' },
         },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
       },
       animation: {
+        'spin-slow': 'spin 3s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         hide: 'hide 100ms ease-in',
         slideIn: 'slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1)',
         swipeOut: 'swipeOut 100ms ease-out',
+        'gradient-x': 'gradient-x 3s ease infinite',
+      },
+      boxShadow: {
+        rainbow:
+          '0 0 10px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 0, 0, 0.1), 0 0 30px rgba(255, 165, 0, 0.1), 0 0 40px rgba(255, 255, 0, 0.1), 0 0 50px rgba(0, 255, 0, 0.1), 0 0 60px rgba(0, 0, 255, 0.1), 0 0 70px rgba(75, 0, 130, 0.1)',
       },
     },
   },
