@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/ibc-info-explorer',
+  base: '/ibc-channel-viewer',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
