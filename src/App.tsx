@@ -28,6 +28,7 @@ import { Switch } from '@/components/ui/switch';
 
 import ChainRestSelector from './components/dapp/registry';
 
+// Yes the struct is wrong blablabla.
 interface IBCData {
   channelId: string;
   clientId: string;
