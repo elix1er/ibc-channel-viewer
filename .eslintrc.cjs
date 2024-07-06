@@ -107,7 +107,7 @@ module.exports = {
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
 
     'prettier/prettier': 'warn',
-
+    'padding-line-between-statements': 'off',
     'unused-imports/no-unused-imports': 'warn',
     'unused-imports/no-unused-vars': [
       'warn',

@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import chainRegistryReducer from '../features/chainRegistry/chainRegistrySlice';
-import ibcInfoReducer from '../features/ibcInfo/ibcInfoSlice';
+import chainRegistryReducer from './chainRegistry/chainRegistrySlice';
+import ibcInfoReducer from './ibcInfo/ibcInfoSlice';
 
 export const store = configureStore({
   reducer: {

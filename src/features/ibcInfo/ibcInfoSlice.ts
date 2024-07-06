@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { RootState } from '@/features/store';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-import { RootState } from '../../app/store';
 
 // interface IBCData {
 //   channelId: string;
@@ -37,75 +36,33 @@ const initialState: IBCInfoState = {
   showTransferOnly: false,
 };
 
-export const fetchChannels = createAsyncThunk(
-  'ibcInfo/fetchChannels',
-  async (_, { getState, rejectWithValue }) => {
-    const { restAddress } = (getState() as RootState).ibcInfo;
+export const fetchChannels = createAsyncThunk('ibcInfo/fetchChannels', async (_, { getState, rejectWithValue }) => {
+  const { restAddress } = (getState() as RootState).ibcInfo;
 
-    if (!restAddress) {
-      return rejectWithValue('REST endpoint is not set');
-    }
+  if (!restAddress) return rejectWithValue('REST endpoint is not set');
+  const response = await fetch(`${restAddress}/ibc/core/channel/v1/channels`, { mode: 'cors' });
+  if (!response.ok) return rejectWithValue('Error fetching channels');
 
-    const response = await fetch(
-      `${restAddress}/ibc/core/channel/v1/channels`,
-      { mode: 'cors' },
-    );
+  return response.json();
+});
 
-    if (!response.ok) {
-      return rejectWithValue('Error fetching channels');
-    }
+export const fetchIBCData = createAsyncThunk('ibcInfo/fetchIBCData', async (_, { getState, rejectWithValue }) => {
+  const { restAddress, channelId, availableChannels } = (getState() as RootState).ibcInfo;
 
-    return response.json();
-  },
-);
+  if (!restAddress) return rejectWithValue('REST endpoint is not set');
+  const selectedChannel = availableChannels.find(channel => channel.channel_id === channelId);
+  if (!selectedChannel) return rejectWithValue('Selected channel not found');
 
-export const fetchIBCData = createAsyncThunk(
-  'ibcInfo/fetchIBCData',
-  async (_, { getState, rejectWithValue }) => {
-    const { restAddress, channelId, availableChannels } = (
-      getState() as RootState
-    ).ibcInfo;
+  let version = '';
+  try {
+    version = JSON.parse(selectedChannel.version);
+  } catch (err) {
+    version = selectedChannel.version;
+  }
 
-    console.log('Starting fetchIBCData:', {
-      restAddress,
-      channelId,
-      availableChannels,
-    });
-
-    if (!restAddress) {
-      console.log('REST endpoint not set');
-
-      return rejectWithValue('REST endpoint is not set');
-    }
-
-    const selectedChannel = availableChannels.find(
-      channel => channel.channel_id === channelId,
-    );
-
-    console.log('Selected channel:', selectedChannel);
-
-    if (!selectedChannel) {
-      console.log('Selected channel not found');
-
-      return rejectWithValue('Selected channel not found');
-    }
-
-    let version;
-
-    try {
-      version = JSON.parse(selectedChannel.version);
-    } catch (err) {
-      console.log('Error parsing version:', err);
-      version = selectedChannel.version;
-    }
-
-    const result = { ...selectedChannel, version };
-
-    console.log('Returning result from fetchIBCData:', result);
-
-    return result;
-  },
-);
+  const result = { ...selectedChannel, version };
+  return result;
+});
 
 const ibcInfoSlice = createSlice({
   name: 'ibcInfo',
@@ -136,12 +93,10 @@ const ibcInfoSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(fetchIBCData.pending, state => {
-        console.log('fetchIBCData.pending');
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchIBCData.fulfilled, (state, action) => {
-        console.log('fetchIBCData.fulfilled:', action.payload);
         state.isLoading = false;
         state.error = null;
         state.data = action.payload;
@@ -155,7 +110,5 @@ const ibcInfoSlice = createSlice({
   },
 });
 
-export const { setRestAddress, setChannelId, setShowTransferOnly } =
-  ibcInfoSlice.actions;
-
+export const { setRestAddress, setChannelId, setShowTransferOnly } = ibcInfoSlice.actions;
 export default ibcInfoSlice.reducer;

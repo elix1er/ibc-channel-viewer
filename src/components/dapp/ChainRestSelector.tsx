@@ -1,28 +1,21 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-// import { ChainRegistryClient } from '@chain-registry/client';
-
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-import { AppDispatch, RootState } from '../../app/store';
 import {
   initializeChainRegistry,
   setSelectedChain,
   setSelectedEndpoint,
-} from '../../features/chainRegistry/chainRegistrySlice';
+} from '@/features/chainRegistry/chainRegistrySlice';
+import { AppDispatch, RootState } from '@/features/store';
+
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ChainRestSelector = ({ disabled }: { disabled: boolean }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { chains, selectedChain, restEndpoints, selectedEndpoint } =
-    useSelector((state: RootState) => state.chainRegistry);
+  const { chains, selectedChain, restEndpoints, selectedEndpoint } = useSelector(
+    (state: RootState) => state.chainRegistry,
+  );
 
   useEffect(() => {
     dispatch(initializeChainRegistry());
@@ -40,11 +33,7 @@ const ChainRestSelector = ({ disabled }: { disabled: boolean }) => {
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="chain-select">Select Chain</Label>
-        <Select
-          onValueChange={handleChainChange}
-          value={selectedChain}
-          disabled={disabled}
-        >
+        <Select onValueChange={handleChainChange} value={selectedChain} disabled={disabled}>
           <SelectTrigger id="chain-select">
             <SelectValue placeholder="Select a chain" />
           </SelectTrigger>
