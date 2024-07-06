@@ -1,6 +1,6 @@
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import { AppDispatch, RootState } from '@/features/store';
+import { RootState } from '@/features/store';
 import { Editor } from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
 
